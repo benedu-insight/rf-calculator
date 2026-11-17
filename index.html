@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7030A0">
+<title>Benedu RF Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Gowun+Batang:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF9F5; --surface:#FFFFFF; --surface-2:#F3EFE8; --ink:#181715; --text:#252320;
+  --muted:#6C6A64; --soft:#A09D96; --hair:#E6DFD8;
+  --accent:#7030A0; --accent-mid:#9B59D0; --accent-lt:#F0E8F8; --on-accent:#FFFFFF;
+  --v:#7030A0; --i:#CC785C; --ok:#0F8C50; --warn:#C9720C; --bad:#B71C1C;
+  --grid:#ECE6DD;
+  --font-en:'Google Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-ko:'Gowun Batang',serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+  --font:'Google Sans','Gowun Batang',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',serif;
+  --r:14px; --nav:68px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#181715; --surface:#232120; --surface-2:#2B2826; --ink:#EFE9DE; --text:#E4DED3;
+    --muted:#A09D96; --soft:#77736C; --hair:#3A3733;
+    --accent:#B98BE0; --accent-mid:#9B59D0; --accent-lt:#2E2338; --on-accent:#181715;
+    --v:#B98BE0; --i:#E39A7E; --ok:#3FBF7F; --warn:#E8A55A; --bad:#F07070; --grid:#2F2C29;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#181715; --surface:#232120; --surface-2:#2B2826; --ink:#EFE9DE; --text:#E4DED3;
+  --muted:#A09D96; --soft:#77736C; --hair:#3A3733;
+  --accent:#B98BE0; --accent-mid:#9B59D0; --accent-lt:#2E2338; --on-accent:#181715;
+  --v:#B98BE0; --i:#E39A7E; --ok:#3FBF7F; --warn:#E8A55A; --bad:#F07070; --grid:#2F2C29;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.55;
+  min-height:100vh;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 16px);
+  -webkit-tap-highlight-color:transparent}
+.num,.eq,input{font-variant-numeric:tabular-nums}
+
+/* header */
+.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--hair);
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:10px}
+.mark{width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--on-accent);
+  display:grid;place-items:center;font-family:var(--font-en);font-weight:700;font-size:15px;flex:none}
+.brand{flex:1;min-width:0}
+.brand b{display:block;font-family:var(--font-en);font-weight:700;color:var(--ink);font-size:16px;letter-spacing:-.01em;line-height:1.2}
+.brand span{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.02em;color:var(--muted)}
+.icon-btn{border:1px solid var(--hair);background:var(--surface);color:var(--muted);border-radius:10px;
+  height:36px;padding:0 10px;font-family:var(--font-mono);font-size:12px;letter-spacing:.04em;cursor:pointer}
+
+main{max-width:640px;margin:0 auto;padding:16px}
+.panel{display:none}
+.panel.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;font-weight:500}
+h1{font-family:var(--font);font-size:23px;line-height:1.3;color:var(--ink);font-weight:700;margin:4px 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.lead{color:var(--muted);font-size:14px;margin-bottom:14px}
+.lead b{color:var(--text);font-weight:700}
+
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
+.card-h .label{font-family:var(--font-mono);font-size:12px;letter-spacing:.02em;color:var(--muted)}
+
+/* inputs */
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.field{background:var(--surface);border:1.5px solid var(--hair);border-radius:var(--r);padding:8px 12px 6px;
+  position:relative;transition:border-color .15s}
+.field:focus-within{border-color:var(--accent)}
+.field.wide{grid-column:1 / -1}
+.field label{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.02em;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.field .row{display:flex;align-items:baseline;gap:6px}
+.field input{flex:1;min-width:0;width:100%;border:0;outline:0;background:transparent;color:var(--ink);
+  font-family:var(--font-en);font-size:28px;font-weight:500;height:44px;letter-spacing:-.01em}
+.field .unit{font-family:var(--font-en);color:var(--muted);font-size:15px;flex:none}
+.field .pm{flex:none;align-self:center;width:36px;height:36px;border-radius:10px;border:1px solid var(--hair);
+  background:var(--surface-2);color:var(--ink);font-size:18px;font-family:var(--font-en);cursor:pointer}
+.field.bad{border-color:var(--bad)}
+
+.seg{display:flex;background:var(--surface-2);border-radius:12px;padding:4px;gap:4px;margin-bottom:10px}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;height:40px;font-family:var(--font);
+  font-size:14px;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--accent);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+
+/* results */
+.result{background:var(--accent-lt);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.result .kicker{text-transform:none;letter-spacing:.03em;font-size:12px}
+.result .big{font-family:var(--font-en);font-size:30px;font-weight:700;color:var(--ink);line-height:1.2;letter-spacing:-.015em;word-break:break-word}
+.result .big small{font-size:18px;font-weight:500;color:var(--muted)}
+.result .sub{font-family:var(--font-en);color:var(--muted);font-size:15px;margin-top:4px}
+.tag{display:inline-block;font-family:var(--font-mono);font-size:12px;letter-spacing:.03em;padding:3px 8px;border-radius:999px;margin-top:10px;
+  border:1px solid currentColor}
+.tag.ind{color:var(--warn)} .tag.cap{color:var(--accent)} .tag.res{color:var(--ok)} .tag.err{color:var(--bad)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.kv div{background:var(--surface);border-radius:10px;padding:8px 10px;border:1px solid var(--hair)}
+.kv span{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.01em;color:var(--muted)}
+.kv b{font-family:var(--font-en);font-size:18px;font-weight:500;color:var(--ink)}
+
+/* steps */
+.euler{text-align:center;font-family:var(--font-en);font-size:21px;color:var(--ink);padding:12px 8px;background:var(--surface-2);border-radius:10px;margin-bottom:12px}
+.steps{list-style:none}
+.steps li{position:relative;padding:0 0 14px 16px;border-left:2px solid var(--hair);margin-left:4px}
+.steps li:last-child{padding-bottom:2px}
+.steps li::before{content:"";position:absolute;left:-6px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.sn{font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;color:var(--accent);font-weight:500}
+.st{font-size:14.5px;color:var(--text);font-weight:700;margin:1px 0 4px}
+.eq{font-family:var(--font-en);font-size:16.5px;color:var(--ink);line-height:1.6;padding:1px 0;overflow-wrap:anywhere}
+.eq.res{color:var(--accent);font-weight:700}
+.eq i{font-style:italic}
+.nw{white-space:nowrap}
+.eq sup,.eq sub{font-size:.7em}
+.note{font-size:13px;color:var(--muted);line-height:1.6}
+.note b{color:var(--text)}
+
+/* charts */
+svg.chart{width:100%;height:auto;display:block;overflow:visible}
+svg text{font-family:var(--font-mono);font-size:11px;fill:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:13px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:16px;height:3px;border-radius:2px;background:currentColor;vertical-align:middle;margin-right:6px}
+.legend .lv{color:var(--v)} .legend .li{color:var(--i)}
+.legend em{font-style:normal;color:var(--text)}
+
+.cta{display:block;width:100%;height:52px;border:0;border-radius:var(--r);background:var(--accent);color:var(--on-accent);
+  font-family:var(--font);font-size:16px;font-weight:700;cursor:pointer;margin-bottom:14px}
+
+/* bottom nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--hair);
+  display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{border:0;background:transparent;height:var(--nav);cursor:pointer;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative}
+nav.tabs .g{font-family:var(--font-en);font-weight:700;font-size:20px;line-height:1}
+nav.tabs .t{font-family:var(--font);font-size:12px}
+nav.tabs button.on{color:var(--accent)}
+nav.tabs button.on::after{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+footer{text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--muted);letter-spacing:.06em;padding:6px 0 4px}
+@media (min-width:560px){ .fields{grid-template-columns:repeat(4,1fr)} .fields .field.half{grid-column:span 2} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="mark">B</div>
+  <div class="brand"><b>Benedu Insight</b><span>RF Calculator · <span id="hdrF" style="display:inline">13.56 MHz</span></span></div>
+  <button class="icon-btn" id="resetBtn" type="button" aria-label="기본값으로 되돌리기">RESET</button>
+</header>
+
+<main>
+<!-- ============ 1. V, I, θ → Z ============ -->
+<section class="panel active" id="p1">
+  <div class="kicker">01 · Phasor → Rectangular</div>
+  <h1>전압·전류·위상으로 임피던스 Z 구하기</h1>
+  <p class="lead">전압·전류는 <b>rms 기준</b>입니다. 위상 θ는 <b>전류 기준 전압의 위상</b>(θ = φ<sub>V</sub> − φ<sub>I</sub>)이며, 양수면 전압이 앞섭니다.</p>
+  <div class="fields">
+    <div class="field"><label for="i-V">V · rms</label><div class="row"><input id="i-V" data-k="V" inputmode="decimal" autocomplete="off"><span class="unit">V</span></div></div>
+    <div class="field"><label for="i-I">I · rms</label><div class="row"><input id="i-I" data-k="I" inputmode="decimal" autocomplete="off"><span class="unit">A</span></div></div>
+    <div class="field"><label for="i-th">θ · phase</label><div class="row"><input id="i-th" data-k="th" inputmode="decimal" autocomplete="off"><span class="unit">°</span><button class="pm" type="button" data-pm="i-th" aria-label="부호 바꾸기">±</button></div></div>
+    <div class="field"><label for="i-f1">f · freq</label><div class="row"><input id="i-f1" data-k="f" inputmode="decimal" autocomplete="off"><span class="unit">MHz</span></div></div>
+  </div>
+
+  <div class="result" id="r1"></div>
+
+  <div class="card">
+    <div class="card-h"><span class="label">Waveform · v(t), i(t)</span><span class="label" id="w1T"></span></div>
+    <svg class="chart" id="wave1" viewBox="0 0 340 214" role="img" aria-label="전압과 전류 파형"></svg>
+    <div class="legend"><span class="lv">v(t) = √2·V·sin(ωt + θ)</span><span class="li">i(t) = √2·I·sin(ωt)</span></div>
+    <p class="note" id="w1note" style="margin-top:6px"></p>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><span class="label">Solution · Euler's formula</span></div>
+    <div class="euler"><i>e</i><sup style="font-size:.65em"><i>j</i>θ</sup> = cos θ + <i>j</i> sin θ</div>
+    <ol class="steps" id="s1"></ol>
+  </div>
+  <button class="cta" type="button" id="useZ">이 Z 값으로 Γ · VSWR 계산하기 →</button>
+</section>
+
+<!-- ============ 2. Z → V, I, θ ============ -->
+<section class="panel" id="p2">
+  <div class="kicker">02 · Impedance → V · I · θ</div>
+  <h1>임피던스 Z로 전압·전류·위상 구하기</h1>
+  <p class="lead">Z = R + jX 만으로는 크기가 정해지지 않으므로 <b>기준값 하나</b>(부하 전력 P, 전압 V, 전류 I 중 하나)를 함께 넣습니다. V·I는 <b>rms</b>입니다.</p>
+  <div class="fields">
+    <div class="field half"><label for="i-R2">R · resistance</label><div class="row"><input id="i-R2" data-k="R" inputmode="decimal" autocomplete="off"><span class="unit">Ω</span><button class="pm" type="button" data-pm="i-R2" aria-label="부호 바꾸기">±</button></div></div>
+    <div class="field half"><label for="i-X2">X · reactance</label><div class="row"><input id="i-X2" data-k="X" inputmode="decimal" autocomplete="off"><span class="unit">Ω</span><button class="pm" type="button" data-pm="i-X2" aria-label="부호 바꾸기">±</button></div></div>
+  </div>
+  <div class="seg" id="mode2" role="tablist">
+    <button type="button" data-mode="P" class="on">전력 P 기준</button>
+    <button type="button" data-mode="V">전압 V 기준</button>
+    <button type="button" data-mode="I">전류 I 기준</button>
+  </div>
+  <div class="fields">
+    <div class="field wide" data-show="P"><label for="i-P">P · load power (real)</label><div class="row"><input id="i-P" data-k="P" inputmode="decimal" autocomplete="off"><span class="unit">W</span></div></div>
+    <div class="field wide" data-show="V" hidden><label for="i-Vs">V · rms</label><div class="row"><input id="i-Vs" data-k="Vs" inputmode="decimal" autocomplete="off"><span class="unit">V</span></div></div>
+    <div class="field wide" data-show="I" hidden><label for="i-Is">I · rms</label><div class="row"><input id="i-Is" data-k="Is" inputmode="decimal" autocomplete="off"><span class="unit">A</span></div></div>
+  </div>
+  <div class="result" id="r2"></div>
+  <div class="card">
+    <div class="card-h"><span class="label">Formulas · 산출식</span></div>
+    <ol class="steps" id="s2"></ol>
+  </div>
+</section>
+
+<!-- ============ 3. Z → Γ ============ -->
+<section class="panel" id="p3">
+  <div class="kicker">03 · Reflection Coefficient</div>
+  <h1>임피던스 Z로 반사계수 Γ 구하기</h1>
+  <p class="lead">기준 임피던스 Z<sub>0</sub>는 RF Generator·케이블 기준인 <b>50 Ω</b>이 기본이며 바꿀 수 있습니다. RF Matcher는 VVC를 움직여 Γ → 0이 되도록 맞춥니다.</p>
+  <div class="fields">
+    <div class="field"><label for="i-R3">R · resistance</label><div class="row"><input id="i-R3" data-k="R" inputmode="decimal" autocomplete="off"><span class="unit">Ω</span><button class="pm" type="button" data-pm="i-R3" aria-label="부호 바꾸기">±</button></div></div>
+    <div class="field"><label for="i-X3">X · reactance</label><div class="row"><input id="i-X3" data-k="X" inputmode="decimal" autocomplete="off"><span class="unit">Ω</span><button class="pm" type="button" data-pm="i-X3" aria-label="부호 바꾸기">±</button></div></div>
+    <div class="field wide"><label for="i-Z03">Z0 · reference</label><div class="row"><input id="i-Z03" data-k="Z0" inputmode="decimal" autocomplete="off"><span class="unit">Ω</span></div></div>
+  </div>
+  <div class="result" id="r3"></div>
+  <div class="card">
+    <div class="card-h"><span class="label">Γ-plane · Smith chart</span><span class="label">|Γ| ≤ 1</span></div>
+    <svg class="chart" id="gplane" viewBox="0 0 300 282" role="img" aria-label="반사계수 평면" style="max-width:340px;margin:0 auto"></svg>
+    <p class="note" style="margin-top:6px">중심 = Z<sub>0</sub>(정합), 오른쪽 끝 = Open, 왼쪽 끝 = Short. 위쪽 반원은 유도성(X &gt; 0), 아래쪽은 용량성(X &lt; 0). 점선 원은 같은 VSWR 원입니다.</p>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="label">Solution · 풀이</span></div>
+    <ol class="steps" id="s3"></ol>
+  </div>
+</section>
+
+<!-- ============ 4. Z → VSWR ============ -->
+<section class="panel" id="p4">
+  <div class="kicker">04 · Standing Wave Ratio</div>
+  <h1>임피던스 Z로 VSWR과 정재파 보기</h1>
+  <p class="lead">무손실 전송선 기준입니다. 입사파 전압 |V<sup>+</sup>| = 1로 정규화해 선로를 따라 전압·전류 크기(rms 포락선)를 그립니다.</p>
+  <div class="fields">
+    <div class="field"><label for="i-R4">R · resistance</label><div class="row"><input id="i-R4" data-k="R" inputmode="decimal" autocomplete="off"><span class="unit">Ω</span><button class="pm" type="button" data-pm="i-R4" aria-label="부호 바꾸기">±</button></div></div>
+    <div class="field"><label for="i-X4">X · reactance</label><div class="row"><input id="i-X4" data-k="X" inputmode="decimal" autocomplete="off"><span class="unit">Ω</span><button class="pm" type="button" data-pm="i-X4" aria-label="부호 바꾸기">±</button></div></div>
+    <div class="field"><label for="i-Z04">Z0 · reference</label><div class="row"><input id="i-Z04" data-k="Z0" inputmode="decimal" autocomplete="off"><span class="unit">Ω</span></div></div>
+    <div class="field"><label for="i-f4">f · freq</label><div class="row"><input id="i-f4" data-k="f" inputmode="decimal" autocomplete="off"><span class="unit">MHz</span></div></div>
+    <div class="field wide"><label for="i-vf">VF · velocity factor (cable)</label><div class="row"><input id="i-vf" data-k="vf" inputmode="decimal" autocomplete="off"><span class="unit">× c</span></div></div>
+  </div>
+  <div class="result" id="r4"></div>
+  <div class="card">
+    <div class="card-h"><span class="label">Standing wave · |V(d)|, |I(d)|·Z0</span></div>
+    <svg class="chart" id="wave4" viewBox="0 0 340 226" role="img" aria-label="정재파 그래프"></svg>
+    <div class="legend"><span class="lv">|V(d)| / |V<sup>+</sup>|</span><span class="li">|I(d)|·Z<sub>0</sub> / |V<sup>+</sup>|</span></div>
+    <p class="note" id="w4note" style="margin-top:6px"></p>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="label">Solution · 풀이</span></div>
+    <ol class="steps" id="s4"></ol>
+  </div>
+</section>
+<footer>BENEDU INSIGHT · PLASMA &amp; RF EDUCATION</footer>
+</main>
+
+<nav class="tabs" aria-label="계산기 메뉴">
+  <button type="button" data-tab="p1" class="on"><span class="g">Z</span><span class="t">임피던스</span></button>
+  <button type="button" data-tab="p2"><span class="g">V·I</span><span class="t">전압·전류</span></button>
+  <button type="button" data-tab="p3"><span class="g">Γ</span><span class="t">반사계수</span></button>
+  <button type="button" data-tab="p4"><span class="g">SWR</span><span class="t">VSWR</span></button>
+</nav>
+
+<script>
+(function(){
+'use strict';
+const DEF = {V:200, I:4, th:36.87, f:13.56, R:40, X:30, Z0:50, P:1000, Vs:200, Is:4, vf:0.66, mode:'P', tab:'p1'};
+const KEY = 'benedu-rf-calc-v1';
+let S = Object.assign({}, DEF);
+try { const saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) Object.assign(S, saved); } catch(e){}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} };
+
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const MINUS = '−', PI = Math.PI, D2R = PI/180, R2D = 180/PI, C0 = 299.792458; // c in m·MHz
+
+/* ---------- formatting ---------- */
+function n(x, d=2){
+  if (x === Infinity) return '∞';
+  if (x === -Infinity) return MINUS + '∞';
+  if (!isFinite(x)) return '—';
+  if (Math.abs(x) < 0.5 * Math.pow(10, -d)) x = 0;
+  return x.toFixed(d).replace('-', MINUS);
+}
+function cpx(re, im, d=2){
+  if (!isFinite(re) || !isFinite(im)) return '—';
+  const sgn = (im < 0 && Math.abs(im) >= 0.5*Math.pow(10,-d)) ? ' − ' : ' + ';
+  return '<span class="nw">' + n(re, d) + sgn + '<i>j</i>' + n(Math.abs(im), d) + '</span>';
+}
+function eng(x, unit, sig=4){
+  if (!isFinite(x)) return '—';
+  if (x === 0) return '0 ' + unit;
+  const P = [[1e12,'T'],[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n'],[1e-12,'p'],[1e-15,'f']];
+  const a = Math.abs(x);
+  let [m, p] = P[P.length-1];
+  for (const [mm, pp] of P){ if (a >= mm*0.9995){ m = mm; p = pp; break; } }
+  let v = x / m;
+  const dig = Math.max(0, sig - 1 - Math.floor(Math.log10(Math.abs(v))));
+  return n(v, Math.min(dig, 4)) + ' ' + p + unit;
+}
+const pn = (x, d=2) => (isFinite(x) && x < 0 && Math.abs(x) >= 0.5*Math.pow(10,-d)) ? "(" + n(x, d) + ")" : n(x, d);
+const sci = (x) => { // for 2π f etc.
+  if (!isFinite(x) || x === 0) return n(x);
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  return n(x / Math.pow(10, e), 3) + '×10<sup>' + String(e).replace('-', MINUS) + '</sup>';
+};
+const num = (v) => {
+  v = String(v).trim().replace(/,/g, '.').replace(/−/g, '-');
+  if (v === '' || v === '-' || v === '.' || v === '-.') return NaN;
+  const x = Number(v); return isFinite(x) ? x : NaN;
+};
+const step = (no, title, lines) =>
+  `<li><span class="sn">STEP ${String(no).padStart(2,'0')}</span><div class="st">${title}</div>${lines.map(l => {
+    const res = l.startsWith('!'); return `<div class="eq${res?' res':''}">${res?l.slice(1):l}</div>`; }).join('')}</li>`;
+const bad = (msg) => `<div class="big" style="font-size:20px">입력값을 확인하세요</div><div class="sub">${msg}</div><span class="tag err">INPUT</span>`;
+const natureTag = (X, R) => {
+  if (!isFinite(X)) return '';
+  if (Math.abs(X) < 1e-9) return '<span class="tag res">RESISTIVE · 순저항성 (X = 0)</span>';
+  return X > 0 ? '<span class="tag ind">INDUCTIVE · 유도성 (X &gt; 0)</span>' : '<span class="tag cap">CAPACITIVE · 용량성 (X &lt; 0)</span>';
+};
+function gamma(R, X, Z0){
+  const a = R - Z0, b = X, c = R + Z0, d = X, den = c*c + d*d;
+  if (den === 0) return null;
+  const gr = (a*c + b*d) / den, gi = (b*c - a*d) / den;
+  return {a, b, c, d, den, gr, gi, m: Math.hypot(gr, gi), ph: Math.atan2(gi, gr)};
+}
+
+/* ---------- SVG helpers ---------- */
+const NS = 'http://www.w3.org/2000/svg';
+const pathOf = (pts) => pts.map((p,i) => (i?'L':'M') + p[0].toFixed(2) + ' ' + p[1].toFixed(2)).join(' ');
+const ln = (x1,y1,x2,y2,st,extra='') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${st}" ${extra}/>`;
+const tx = (x,y,s,anchor='middle',extra='') => `<text x="${x}" y="${y}" text-anchor="${anchor}" ${extra}>${s}</text>`;
+
+/* ================= Panel 1 ================= */
+function render1(){
+  const {V, I, th, f} = S;
+  const r = $('#r1'), s = $('#s1'), w = $('#wave1');
+  const ok = isFinite(V) && isFinite(I) && isFinite(th) && I !== 0 && V >= 0 && I > 0;
+  if (!ok){ r.innerHTML = bad('V ≥ 0, I &gt; 0 인 rms 값과 위상 θ를 넣어 주세요.'); s.innerHTML=''; w.innerHTML=''; $('#w1note').textContent=''; return; }
+  const Zm = V / I, t = th * D2R, c = Math.cos(t), sn = Math.sin(t), R = Zm * c, X = Zm * sn;
+  const P = V * I * c, Q = V * I * sn;
+  const fHz = f * 1e6, fOk = isFinite(f) && f > 0, w0 = 2 * PI * fHz;
+  r.innerHTML = `<div class="kicker" style="margin-bottom:4px">Z = R + jX</div>
+    <div class="big">${cpx(R, X)} <small>Ω</small></div>
+    <div class="sub">|Z|∠θ = ${n(Zm)} Ω ∠ ${n(th)}°</div>${natureTag(X)}
+    <div class="kv"><div><span>R · 저항</span><b>${n(R)} Ω</b></div><div><span>X · 리액턴스</span><b>${n(X)} Ω</b></div>
+    <div><span>P = V·I·cosθ</span><b>${eng(P,'W')}</b></div><div><span>Q = V·I·sinθ</span><b>${eng(Q,'var')}</b></div></div>`;
+
+  let lc = '';
+  if (fOk && Math.abs(X) > 1e-9){
+    lc = X > 0
+      ? step(6, '해석 — 유도성 리액턴스를 등가 인덕턴스로', [
+          `<i>X</i> = ω<i>L</i> &nbsp;→&nbsp; <i>L</i> = <i>X</i> / (2π<i>f</i>)`,
+          `= ${n(X)} / (2π × ${n(f)}×10<sup>6</sup>) = ${n(X)} / ${sci(w0)}`,
+          `!<i>L</i> = ${eng(X / w0, 'H')} &nbsp;(@ ${n(f)} MHz)`])
+      : step(6, '해석 — 용량성 리액턴스를 등가 커패시턴스로', [
+          `<i>X</i> = −1/(ω<i>C</i>) &nbsp;→&nbsp; <i>C</i> = 1 / (2π<i>f</i>·|<i>X</i>|)`,
+          `= 1 / (${sci(w0)} × ${n(Math.abs(X))})`,
+          `!<i>C</i> = ${eng(1 / (w0 * Math.abs(X)), 'F')} &nbsp;(@ ${n(f)} MHz)`]);
+  } else if (Math.abs(X) <= 1e-9) {
+    lc = step(6, '해석', ['X = 0 → 전압과 전류가 같은 위상, 순수 저항 부하입니다.']);
+  }
+  s.innerHTML =
+    step(1, '임피던스 크기 |Z| = V / I (rms끼리 나눔)', [
+      `|<i>Z</i>| = <i>V</i><sub>rms</sub> / <i>I</i><sub>rms</sub> = ${n(V)} / ${n(I)}`,
+      `!|<i>Z</i>| = ${n(Zm)} Ω`]) +
+    step(2, '페이저로 표현 (전류를 기준 0°로)', [
+      `<b>V</b> = ${n(V)}∠${n(th)}° V, &nbsp;<b>I</b> = ${n(I)}∠0° A`,
+      `<i>Z</i> = <b>V</b>/<b>I</b> = |<i>Z</i>|∠θ = |<i>Z</i>| <i>e</i><sup><i>j</i>θ</sup>`,
+      `!<i>Z</i> = ${n(Zm)} <i>e</i><sup><i>j</i>(${n(th)}°)</sup> Ω`]) +
+    step(3, '오일러 공식 적용', [
+      `<i>e</i><sup><i>j</i>θ</sup> = cos θ + <i>j</i> sin θ`,
+      `cos(${n(th)}°) = ${n(c,4)}, &nbsp; sin(${n(th)}°) = ${n(sn,4)}`,
+      `!<i>e</i><sup><i>j</i>(${n(th)}°)</sup> = ${cpx(c, sn, 4)}`]) +
+    step(4, '크기를 곱해 실수부·허수부로 분리', [
+      `<i>Z</i> = |<i>Z</i>| cos θ + <i>j</i> |<i>Z</i>| sin θ`,
+      `<i>R</i> = ${n(Zm)} × ${pn(c,4)} = ${n(R)} Ω`,
+      `<i>X</i> = ${n(Zm)} × ${pn(sn,4)} = ${n(X)} Ω`]) +
+    step(5, '직교 형식 결과', [`!<i>Z</i> = <i>R</i> + <i>jX</i> = ${cpx(R, X)} Ω`]) + lc;
+
+  drawWave1(V, I, th, fOk ? f : 13.56);
+}
+
+function drawWave1(V, I, th, f){
+  const W = 340, H = 214, L = 46, Rt = 46, T0 = 12, B = 30;
+  const pw = W - L - Rt, ph = H - T0 - B, cy = T0 + ph/2;
+  const vpk = Math.SQRT2 * V, ipk = Math.SQRT2 * I;
+  const Tns = 1000 / f, tmax = 2 * Tns, t = th * D2R;
+  const vs = vpk > 0 ? (ph/2) / (vpk * 1.12) : 0, is = (ph/2) / (ipk * 1.12);
+  const X = (tn) => L + tn / tmax * pw;
+  const N = 240, pv = [], pi = [];
+  for (let k = 0; k <= N; k++){
+    const tn = tmax * k / N, wt = 2 * PI * tn / Tns;
+    pv.push([X(tn), cy - vs * vpk * Math.sin(wt + t)]);
+    pi.push([X(tn), cy - is * ipk * Math.sin(wt)]);
+  }
+  let g = '';
+  // grid
+  [0, 0.5, 1, 1.5, 2].forEach(k => { g += ln(X(k*Tns), T0, X(k*Tns), T0+ph, 'var(--grid)'); });
+  const yv = vpk * vs;
+  [cy - yv, cy + yv].forEach(y => { g += ln(L, y, L+pw, y, 'var(--grid)', 'stroke-dasharray="3 3"'); });
+  g += ln(L, cy, L+pw, cy, 'var(--soft)', 'stroke-width="1"');
+  g += ln(L, T0, L, T0+ph, 'var(--hair)') + ln(L+pw, T0, L+pw, T0+ph, 'var(--hair)');
+  // axis labels
+  g += tx(L-5, cy - yv + 3.5, n(vpk, vpk >= 100 ? 0 : 1), 'end', 'style="fill:var(--v)"');
+  g += tx(L-5, cy + yv + 3.5, MINUS + n(vpk, vpk >= 100 ? 0 : 1), 'end', 'style="fill:var(--v)"');
+  g += tx(L-5, cy + 3.5, '0', 'end');
+  g += tx(L+pw+5, cy - is*ipk + 3.5, n(ipk, ipk >= 100 ? 0 : 2), 'start', 'style="fill:var(--i)"');
+  g += tx(L+pw+5, cy + is*ipk + 3.5, MINUS + n(ipk, ipk >= 100 ? 0 : 2), 'start', 'style="fill:var(--i)"');
+  g += tx(10, T0 + 8, 'V', 'start', 'style="fill:var(--v);font-weight:700"');
+  g += tx(W - 10, T0 + 8, 'A', 'end', 'style="fill:var(--i);font-weight:700"');
+  ['0', 'T/2', 'T', '3T/2', '2T'].forEach((s, k) => { g += tx(X(k*Tns/2), T0+ph+14, s); });
+  g += tx(L + pw/2, H - 2, 't  [T = ' + n(Tns, 2) + ' ns]');
+  // phase marker: peaks in first period
+  let thn = ((th % 360) + 540) % 360 - 180; // (-180,180]
+  let ti = Tns/4, tv = Tns/4 - thn/360*Tns;
+  if (tv < 0){ ti += Tns; tv += Tns; }
+  const dt = Math.abs(thn) / 360 * Tns;
+  if (Math.abs(thn) > 0.5){
+    g += ln(X(ti), T0, X(ti), T0+ph, 'var(--i)', 'stroke-dasharray="2 3" opacity=".7"');
+    g += ln(X(tv), T0, X(tv), T0+ph, 'var(--v)', 'stroke-dasharray="2 3" opacity=".7"');
+    const yb = T0 + 4, x1 = Math.min(X(ti), X(tv)), x2 = Math.max(X(ti), X(tv));
+    g += `<path d="M${x1} ${yb+4} V${yb} H${x2} V${yb+4}" fill="none" stroke="var(--ink)" stroke-width="1"/>`;
+  }
+  g += `<path d="${pathOf(pi)}" fill="none" stroke="var(--i)" stroke-width="2.2" stroke-linejoin="round"/>`;
+  g += `<path d="${pathOf(pv)}" fill="none" stroke="var(--v)" stroke-width="2.4" stroke-linejoin="round"/>`;
+  $('#wave1').innerHTML = g;
+  $('#w1T').textContent = 'f = ' + n(f) + ' MHz';
+  const lead = thn > 0.5 ? '전압이 전류보다 앞섭니다(유도성).' : thn < -0.5 ? '전압이 전류보다 뒤집니다(용량성).' : '전압과 전류가 같은 위상입니다(저항성).';
+  $('#w1note').innerHTML = `피크값 = √2 × rms: V<sub>pk</sub> = ${n(vpk)} V, I<sub>pk</sub> = ${n(ipk)} A. ` +
+    (Math.abs(thn) > 0.5 ? `두 피크 사이 시간차 Δt = |θ|/360° × T = ${n(Math.abs(thn))}/360 × ${n(Tns)} ns = <b>${n(dt)} ns</b>. ` : '') + lead +
+    ' 세로축은 V(왼쪽)·A(오른쪽) 눈금이 다릅니다.';
+}
+
+/* ================= Panel 2 ================= */
+function render2(){
+  const {R, X, mode} = S, r = $('#r2'), s = $('#s2');
+  if (!isFinite(R) || !isFinite(X)){ r.innerHTML = bad('R, X를 넣어 주세요.'); s.innerHTML=''; return; }
+  const Zm = Math.hypot(R, X), th = Math.atan2(X, R) * R2D, c = Math.cos(th*D2R);
+  let V, I, base;
+  if (mode === 'P'){
+    const P = S.P;
+    if (!isFinite(P) || P < 0){ r.innerHTML = bad('부하 전력 P (W)를 넣어 주세요.'); s.innerHTML=''; return; }
+    if (R <= 0){ r.innerHTML = bad('전력 기준 계산은 R &gt; 0 일 때만 가능합니다 (P = I²R). 전압 또는 전류 기준을 쓰세요.'); s.innerHTML=''; return; }
+    I = Math.sqrt(P / R); V = I * Zm;
+    base = step(3, '전력 기준으로 전류 구하기 (유효전력은 R에서만 소비)', [
+      `<i>P</i> = <i>I</i><sub>rms</sub><sup>2</sup> <i>R</i> &nbsp;→&nbsp; <i>I</i><sub>rms</sub> = √(<i>P</i> / <i>R</i>)`,
+      `= √(${n(P)} / ${n(R)}) = √${n(P/R, 3)}`,
+      `!<i>I</i><sub>rms</sub> = ${n(I, 3)} A`]) +
+      step(4, '전압 구하기 (옴의 법칙, 크기)', [
+      `<i>V</i><sub>rms</sub> = <i>I</i><sub>rms</sub> × |<i>Z</i>| = ${n(I,3)} × ${n(Zm)}`,
+      `!<i>V</i><sub>rms</sub> = ${n(V)} V`]);
+  } else if (mode === 'V'){
+    V = S.Vs;
+    if (!isFinite(V) || V < 0){ r.innerHTML = bad('전압 V rms를 넣어 주세요.'); s.innerHTML=''; return; }
+    I = Zm > 0 ? V / Zm : Infinity;
+    base = step(3, '전류 구하기 (옴의 법칙, 크기)', [
+      `<i>I</i><sub>rms</sub> = <i>V</i><sub>rms</sub> / |<i>Z</i>| = ${n(V)} / ${n(Zm)}`,
+      `!<i>I</i><sub>rms</sub> = ${n(I, 3)} A`]);
+  } else {
+    I = S.Is;
+    if (!isFinite(I) || I < 0){ r.innerHTML = bad('전류 I rms를 넣어 주세요.'); s.innerHTML=''; return; }
+    V = I * Zm;
+    base = step(3, '전압 구하기 (옴의 법칙, 크기)', [
+      `<i>V</i><sub>rms</sub> = <i>I</i><sub>rms</sub> × |<i>Z</i>| = ${n(I,3)} × ${n(Zm)}`,
+      `!<i>V</i><sub>rms</sub> = ${n(V)} V`]);
+  }
+  const P = I*I*R, Q = I*I*X, Sapp = V*I;
+  r.innerHTML = `<div class="kicker" style="margin-bottom:4px">V · I · θ (rms)</div>
+    <div class="big">${n(V)} <small>V</small> · ${n(I, 3)} <small>A</small></div>
+    <div class="sub">θ = ${n(th)}° &nbsp;(전류 기준 전압 위상) · Z = ${cpx(R, X)} Ω</div>${natureTag(X)}
+    <div class="kv"><div><span>|Z|</span><b>${n(Zm)} Ω</b></div><div><span>PF = cos θ</span><b>${n(c, 4)}</b></div>
+    <div><span>P · 유효</span><b>${eng(P,'W')}</b></div><div><span>Q · 무효</span><b>${eng(Q,'var')}</b></div>
+    <div><span>S · 피상</span><b>${eng(Sapp,'VA')}</b></div><div><span>V<sub>pk</sub> · I<sub>pk</sub></span><b>${n(V*Math.SQRT2,1)} V · ${n(I*Math.SQRT2,2)} A</b></div></div>`;
+  s.innerHTML =
+    step(1, '임피던스 크기', [
+      `|<i>Z</i>| = √(<i>R</i><sup>2</sup> + <i>X</i><sup>2</sup>) = √(${pn(R)}<sup>2</sup> + ${pn(X)}<sup>2</sup>)`,
+      `= √${n(R*R + X*X)}`,
+      `!|<i>Z</i>| = ${n(Zm)} Ω`]) +
+    step(2, '위상 (전압이 전류보다 앞서는 각)', [
+      `θ = atan2(<i>X</i>, <i>R</i>) = tan<sup>−1</sup>(${n(X)} / ${n(R)})`,
+      `!θ = ${n(th)}° &nbsp;(${n(th*D2R, 4)} rad)`]) +
+    base +
+    step(mode === 'P' ? 5 : 4, '전력 확인 및 페이저 정리', [
+      `<i>P</i> = <i>V I</i> cos θ = ${n(V)} × ${n(I,3)} × ${pn(c,4)} = ${eng(V*I*c,'W')}`,
+      `<i>Q</i> = <i>V I</i> sin θ = ${eng(V*I*Math.sin(th*D2R),'var')}, &nbsp; <i>S</i> = <i>V I</i> = ${eng(Sapp,'VA')}`,
+      `!<b>V</b> = ${n(V)}∠${n(th)}° V, &nbsp;<b>I</b> = ${n(I,3)}∠0° A`]);
+}
+
+/* ================= Panel 3 ================= */
+function render3(){
+  const {R, X, Z0} = S, r = $('#r3'), s = $('#s3');
+  if (!isFinite(R) || !isFinite(X) || !isFinite(Z0) || Z0 <= 0){ r.innerHTML = bad('R, X와 Z0 &gt; 0 을 넣어 주세요.'); s.innerHTML=''; $('#gplane').innerHTML=''; return; }
+  const G = gamma(R, X, Z0);
+  if (!G){ r.innerHTML = bad('Z + Z0 = 0 이면 Γ가 정의되지 않습니다.'); s.innerHTML=''; $('#gplane').innerHTML=''; return; }
+  const {a, b, c, d, den, gr, gi, m, ph} = G;
+  const RL = m > 0 ? -20 * Math.log10(m) : Infinity;
+  const ML = m < 1 ? -10 * Math.log10(1 - m*m) : Infinity;
+  const tag = m < 1e-6 ? '<span class="tag res">MATCHED · 완전 정합</span>'
+    : m < 1 ? `<span class="tag ${m < 0.2 ? 'res' : m < 0.5 ? 'ind' : 'err'}">반사 전력 ${n(m*m*100, 1)}%</span>`
+    : '<span class="tag err">|Γ| ≥ 1 · 전반사/능동 부하</span>';
+  r.innerHTML = `<div class="kicker" style="margin-bottom:4px">Γ (GAMMA)</div>
+    <div class="big">${cpx(gr, gi, 4)}</div>
+    <div class="sub">|Γ|∠φ = ${n(m, 4)} ∠ ${n(ph*R2D)}° · Z<sub>0</sub> = ${n(Z0)} Ω</div>${tag}
+    <div class="kv"><div><span>Return Loss</span><b>${n(RL)} dB</b></div><div><span>|Γ|² · 반사 전력</span><b>${n(m*m*100, 2)} %</b></div>
+    <div><span>Mismatch Loss</span><b>${n(ML, 3)} dB</b></div><div><span>VSWR</span><b>${m < 1 ? n((1+m)/(1-m), 3) : '∞'}</b></div></div>`;
+  s.innerHTML =
+    step(1, '반사계수 정의', [`Γ = (<i>Z</i> − <i>Z</i><sub>0</sub>) / (<i>Z</i> + <i>Z</i><sub>0</sub>)`]) +
+    step(2, '분자·분모에 값 대입', [
+      `분자: <i>Z</i> − <i>Z</i><sub>0</sub> = (${n(R)} − ${n(Z0)}) + <i>j</i>${pn(X)} = ${cpx(a, b)}`,
+      `분모: <i>Z</i> + <i>Z</i><sub>0</sub> = (${n(R)} + ${n(Z0)}) + <i>j</i>${pn(X)} = ${cpx(c, d)}`,
+      `Γ = (${cpx(a, b)}) / (${cpx(c, d)})`]) +
+    step(3, '분모의 켤레복소수를 위아래에 곱하기', [
+      `Γ = (<i>a</i> + <i>jb</i>)(<i>c</i> − <i>jd</i>) / (<i>c</i><sup>2</sup> + <i>d</i><sup>2</sup>)`,
+      `<i>c</i><sup>2</sup> + <i>d</i><sup>2</sup> = ${pn(c)}<sup>2</sup> + ${pn(d)}<sup>2</sup> = ${n(den)}`,
+      `실수부: (<i>ac</i> + <i>bd</i>) / ${n(den)} = (${n(a*c)} + ${pn(b*d)}) / ${n(den)} = ${n(gr, 4)}`,
+      `허수부: (<i>bc</i> − <i>ad</i>) / ${n(den)} = (${n(b*c)} − ${pn(a*d)}) / ${n(den)} = ${n(gi, 4)}`,
+      `!Γ = ${cpx(gr, gi, 4)}`]) +
+    step(4, '극좌표 형식 (크기·위상)', [
+      `|Γ| = √(${pn(gr,4)}<sup>2</sup> + ${pn(gi,4)}<sup>2</sup>) = ${n(m, 4)}`,
+      `φ = atan2(${n(gi,4)}, ${n(gr,4)}) = ${n(ph*R2D)}°`,
+      `!Γ = ${n(m, 4)} <i>e</i><sup><i>j</i>(${n(ph*R2D)}°)</sup>`]) +
+    step(5, '반사 손실과 반사 전력', [
+      `RL = −20 log<sub>10</sub>|Γ| = −20 log<sub>10</sub>(${n(m,4)}) = ${n(RL)} dB`,
+      `<i>P</i><sub>ref</sub> / <i>P</i><sub>fwd</sub> = |Γ|<sup>2</sup> = ${n(m*m, 4)} → ${n(m*m*100, 2)} %`,
+      `Mismatch Loss = −10 log<sub>10</sub>(1 − |Γ|<sup>2</sup>) = ${n(ML, 3)} dB`]);
+  drawGamma(gr, gi, m);
+}
+
+function drawGamma(gr, gi, m){
+  const W = 300, cx = 150, cy = 128, Rr = 108;
+  const X = (u) => cx + u * Rr, Y = (v) => cy - v * Rr;
+  let g = `<defs><clipPath id="uc"><circle cx="${cx}" cy="${cy}" r="${Rr}"/></clipPath></defs>`;
+  g += `<circle cx="${cx}" cy="${cy}" r="${Rr}" fill="var(--surface-2)" stroke="var(--soft)" stroke-width="1.2"/>`;
+  g += `<g clip-path="url(#uc)" fill="none" stroke="var(--hair)" stroke-width="1">`;
+  // constant-r circles r = 0.5, 1, 2 : center (r/(1+r), 0), radius 1/(1+r)
+  [0.5, 1, 2].forEach(rv => { g += `<circle cx="${X(rv/(1+rv))}" cy="${cy}" r="${Rr/(1+rv)}" ${rv===1?'stroke="var(--soft)"':''}/>`; });
+  // constant-x arcs x = ±0.5, ±1, ±2 : center (1, 1/x), radius 1/|x|
+  [0.5, 1, 2].forEach(xv => { [1, -1].forEach(sg => { g += `<circle cx="${X(1)}" cy="${Y(sg/xv)}" r="${Rr/xv}"/>`; }); });
+  g += `</g>`;
+  g += ln(X(-1), cy, X(1), cy, 'var(--soft)');
+  if (m > 1e-6 && m <= 1.0001) g += `<circle cx="${cx}" cy="${cy}" r="${m*Rr}" fill="none" stroke="var(--accent)" stroke-dasharray="4 4" opacity=".7"/>`;
+  g += tx(X(-1)+2, cy+14, 'Short', 'start') + tx(X(1)-2, cy+14, 'Open', 'end') + tx(cx, cy+14, 'Z₀');
+  g += tx(cx, Y(1)-6, '+jX 유도성') + tx(cx, Y(-1)+15, '−jX 용량성');
+  const k = m > 1 ? 1 / m : 1, px = X(gr*k), py = Y(gi*k);
+  g += ln(cx, cy, px, py, 'var(--accent)', 'stroke-width="2"');
+  g += `<circle cx="${px}" cy="${py}" r="6" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`;
+  g += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="var(--ink)"/>`;
+  const lx = px > cx ? px - 10 : px + 10;
+  g += tx(lx, py - 10, 'Γ', px > cx ? 'end' : 'start', 'style="fill:var(--accent);font-size:13px;font-weight:700"');
+  g += tx(cx, 278, m > 1 ? '|Γ| > 1 : 원 밖 → 경계에 표시' : '|Γ| = ' + n(m, 3) + ' · ∠' + n(Math.atan2(gi,gr)*R2D, 1) + '°');
+  $('#gplane').innerHTML = g;
+}
+
+/* ================= Panel 4 ================= */
+function render4(){
+  const {R, X, Z0, f, vf} = S, r = $('#r4'), s = $('#s4');
+  const clear = () => { s.innerHTML=''; $('#wave4').innerHTML=''; $('#w4note').textContent=''; };
+  if (!isFinite(R) || !isFinite(X) || !isFinite(Z0) || Z0 <= 0){ r.innerHTML = bad('R, X와 Z0 &gt; 0 을 넣어 주세요.'); clear(); return; }
+  const G = gamma(R, X, Z0);
+  if (!G){ r.innerHTML = bad('Z + Z0 = 0 이면 Γ가 정의되지 않습니다.'); clear(); return; }
+  const {gr, gi, m, ph} = G;
+  const swr = m < 1 ? (1 + m) / (1 - m) : Infinity;
+  const fOk = isFinite(f) && f > 0, vOk = isFinite(vf) && vf > 0 && vf <= 1;
+  const lam = (fOk && vOk) ? C0 / f * vf : NaN, lam0 = fOk ? C0 / f : NaN;
+  let umax = ph / (4 * PI); umax = ((umax % 0.5) + 0.5) % 0.5;
+  const umin = (umax + 0.25) % 0.5;
+  const matched = m < 1e-6;
+  const lvl = swr < 1.5 ? 'res' : swr < 3 ? 'ind' : 'err';
+  r.innerHTML = `<div class="kicker" style="margin-bottom:4px">VSWR · ISWR</div>
+    <div class="big">${m < 1 ? n(swr, 3) : '∞'} <small>: 1</small></div>
+    <div class="sub">|Γ| = ${n(m, 4)} · Z = ${cpx(R, X)} Ω · Z<sub>0</sub> = ${n(Z0)} Ω</div>
+    <span class="tag ${matched ? 'res' : lvl}">${matched ? 'MATCHED · 정재파 없음' : swr < 1.5 ? '양호 (VSWR &lt; 1.5)' : swr < 3 ? '주의 (1.5 ≤ VSWR &lt; 3)' : '부정합 큼 (VSWR ≥ 3)'}</span>
+    <div class="kv"><div><span>VSWR = V<sub>max</sub>/V<sub>min</sub></span><b>${m < 1 ? n(swr, 3) : '∞'}</b></div><div><span>ISWR = I<sub>max</sub>/I<sub>min</sub></span><b>${m < 1 ? n(swr, 3) : '∞'}</b></div>
+    <div><span>V<sub>max</sub> 위치 (Load→)</span><b>${matched ? '—' : n(umax, 3) + ' λ'}</b></div><div><span>λ in cable</span><b>${isFinite(lam) ? n(lam, 2) + ' m' : '—'}</b></div></div>`;
+  const dm = (u) => isFinite(lam) ? ` = ${n(u*lam, 2)} m` : '';
+  s.innerHTML =
+    step(1, '반사계수 크기 |Γ| (03 메뉴와 같은 식)', [
+      `Γ = (<i>Z</i> − <i>Z</i><sub>0</sub>) / (<i>Z</i> + <i>Z</i><sub>0</sub>) = ${cpx(gr, gi, 4)}`,
+      `!|Γ| = ${n(m, 4)}, &nbsp; φ = ${n(ph*R2D)}°`]) +
+    step(2, 'VSWR — 전압 정재파비', [
+      `VSWR = (1 + |Γ|) / (1 − |Γ|) = (1 + ${n(m,4)}) / (1 − ${n(m,4)})`,
+      m < 1 ? `= ${n(1+m, 4)} / ${n(1-m, 4)}` : `1 − |Γ| ≤ 0 → 분모가 0 이하`,
+      `!VSWR = ${m < 1 ? n(swr, 3) : '∞'}`]) +
+    step(3, '선로 위 전압·전류 크기 (부하에서 거리 d)', [
+      `|<i>V</i>(<i>d</i>)| = |<i>V</i><sup>+</sup>| · |1 + Γ <i>e</i><sup>−<i>j</i>2β<i>d</i></sup>|`,
+      `|<i>I</i>(<i>d</i>)| = (|<i>V</i><sup>+</sup>| / <i>Z</i><sub>0</sub>) · |1 − Γ <i>e</i><sup>−<i>j</i>2β<i>d</i></sup>|`,
+      `<i>V</i><sub>max</sub> = 1 + |Γ| = ${n(1+m, 4)}, &nbsp; <i>V</i><sub>min</sub> = |1 − |Γ|| = ${n(Math.abs(1-m), 4)}`,
+      `!<i>V</i><sub>max</sub> / <i>V</i><sub>min</sub> = ${m < 1 ? n(swr, 3) : '∞'} = VSWR`]) +
+    step(4, 'ISWR — 전류 정재파비', [
+      `<i>I</i><sub>max</sub> = (1 + |Γ|)/<i>Z</i><sub>0</sub>, &nbsp; <i>I</i><sub>min</sub> = (1 − |Γ|)/<i>Z</i><sub>0</sub>`,
+      `!ISWR = <i>I</i><sub>max</sub> / <i>I</i><sub>min</sub> = VSWR = ${m < 1 ? n(swr, 3) : '∞'}`,
+      `전류 최대점은 전압 최소점에, 전류 최소점은 전압 최대점에 생깁니다.`]) +
+    step(5, '파장과 최대·최소점 위치', [
+      `λ = VF · <i>c</i> / <i>f</i> = ${n(vf, 3)} × ${n(lam0, 2)} m${isFinite(lam) ? ' = ' + n(lam, 2) + ' m' : ''} &nbsp;(@ ${n(f)} MHz)`,
+      `2β<i>d</i><sub>max</sub> = φ &nbsp;→&nbsp; <i>d</i><sub>max</sub> = φ/(4π) · λ ${matched ? '' : '= ' + n(umax, 3) + ' λ' + dm(umax)}`,
+      matched ? 'Γ = 0 이면 최대·최소가 없습니다 (진행파만 존재).' : `<i>d</i><sub>min</sub> = <i>d</i><sub>max</sub> ± λ/4 = ${n(umin, 3)} λ${dm(umin)} &nbsp;(λ/2마다 반복)`]);
+  drawWave4(gr, gi, m, umax, umin, matched);
+}
+
+function drawWave4(gr, gi, m, umax, umin, matched){
+  const W = 340, H = 226, L = 34, Rt = 14, T0 = 16, B = 40;
+  const pw = W - L - Rt, ph = H - T0 - B;
+  const ymax = Math.max(2, Math.ceil((1 + m) * 2) / 2);
+  // load at right: d = 0 → x = L+pw, d = 1λ → x = L
+  const Xd = (u) => L + pw - u * pw, Y = (v) => T0 + ph - v / ymax * ph;
+  const N = 300, pv = [], pi = [];
+  for (let k = 0; k <= N; k++){
+    const u = k / N, kk = 4 * PI * u;
+    const re = gr * Math.cos(kk) + gi * Math.sin(kk), im = gi * Math.cos(kk) - gr * Math.sin(kk);
+    pv.push([Xd(u), Y(Math.hypot(1 + re, im))]);
+    pi.push([Xd(u), Y(Math.hypot(1 - re, -im))]);
+  }
+  let g = '';
+  for (let v = 0; v <= ymax + 1e-9; v += 0.5) {
+    g += ln(L, Y(v), L+pw, Y(v), 'var(--grid)');
+    g += tx(L-5, Y(v)+3.5, n(v, 1), 'end');
+  }
+  [0, 0.25, 0.5, 0.75, 1].forEach((u, k) => {
+    g += ln(Xd(u), T0, Xd(u), T0+ph, 'var(--grid)');
+    g += tx(Xd(u), T0+ph+13, ['0', 'λ/4', 'λ/2', '3λ/4', 'λ'][k]);
+  });
+  g += ln(L, Y(1), L+pw, Y(1), 'var(--soft)', 'stroke-dasharray="2 3"');
+  if (!matched){
+    g += ln(L, Y(1+m), L+pw, Y(1+m), 'var(--v)', 'stroke-dasharray="5 4" opacity=".55"');
+    g += ln(L, Y(Math.abs(1-m)), L+pw, Y(Math.abs(1-m)), 'var(--v)', 'stroke-dasharray="5 4" opacity=".55"');
+    g += tx(L+4, Y(1+m)-4, 'Vmax ' + n(1+m, 3), 'start', 'style="fill:var(--v)"');
+    g += tx(L+4, Y(Math.abs(1-m))+12, 'Vmin ' + n(Math.abs(1-m), 3), 'start', 'style="fill:var(--v)"');
+  }
+  g += `<path d="${pathOf(pi)}" fill="none" stroke="var(--i)" stroke-width="2.2" stroke-linejoin="round"/>`;
+  g += `<path d="${pathOf(pv)}" fill="none" stroke="var(--v)" stroke-width="2.6" stroke-linejoin="round"/>`;
+  g += `<rect x="${L+pw-3}" y="${T0}" width="6" height="${ph}" rx="2" fill="var(--ink)" opacity=".85"/>`;
+  g += tx(L+pw, H-6, 'Load', 'end', 'style="fill:var(--ink);font-weight:700"');
+  g += tx(L, H-6, '← RF Generator 쪽 · d = 부하로부터 거리', 'start');
+  $('#wave4').innerHTML = g;
+  $('#w4note').innerHTML = matched
+    ? '정합 상태: 반사파가 없어 전압·전류 크기가 선로 어디서나 1로 일정합니다.'
+    : `전압 포락선이 1 + |Γ|와 1 − |Γ| 사이를 λ/2 주기로 오르내립니다. 최대/최소 비율이 VSWR = <b>${m < 1 ? n((1+m)/(1-m), 3) : '∞'}</b>이며, 전류는 전압과 λ/4 어긋나 같은 비율(ISWR)을 가집니다.`;
+}
+
+/* ================= wiring ================= */
+function syncInputs(except){
+  $$('input[data-k]').forEach(el => {
+    if (el === except) return;
+    const v = S[el.dataset.k];
+    el.value = isFinite(v) ? String(v) : (el.value || '');
+  });
+}
+function markBad(){
+  $$('input[data-k]').forEach(el => el.closest('.field').classList.toggle('bad', !isFinite(num(el.value))));
+}
+function renderAll(){
+  render1(); render2(); render3(); render4();
+  $('#hdrF').textContent = isFinite(S.f) ? n(S.f) + ' MHz' : '— MHz';
+  markBad(); save();
+}
+$$('input[data-k]').forEach(el => {
+  el.addEventListener('input', () => {
+    S[el.dataset.k] = num(el.value);
+    $$(`input[data-k="${el.dataset.k}"]`).forEach(o => { if (o !== el) o.value = el.value; });
+    renderAll();
+  });
+  el.addEventListener('focus', () => { try { el.select(); } catch(e){} });
+});
+$$('[data-pm]').forEach(b => b.addEventListener('click', () => {
+  const el = document.getElementById(b.dataset.pm);
+  let v = el.value.trim().replace(/−/g, '-');
+  el.value = v.startsWith('-') ? v.slice(1) : (v === '' ? '-' : '-' + v);
+  el.dispatchEvent(new Event('input'));
+}));
+function setMode(m){
+  S.mode = m;
+  $$('#mode2 button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  $$('#p2 [data-show]').forEach(f => f.hidden = f.dataset.show !== m);
+}
+$$('#mode2 button').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); renderAll(); }));
+function setTab(id){
+  S.tab = id;
+  $$('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  $$('nav.tabs button').forEach(b => { const on = b.dataset.tab === id; b.classList.toggle('on', on); b.setAttribute('aria-current', on ? 'page' : 'false'); });
+  window.scrollTo({top: 0, behavior: 'instant' in window ? 'instant' : 'auto'});
+  save();
+}
+$$('nav.tabs button').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+$('#useZ').addEventListener('click', () => {
+  const {V, I, th} = S;
+  if (!(isFinite(V) && isFinite(I) && isFinite(th) && I > 0)) return;
+  const Zm = V / I;
+  S.R = +(Zm * Math.cos(th * D2R)).toFixed(4);
+  S.X = +(Zm * Math.sin(th * D2R)).toFixed(4);
+  syncInputs(); renderAll(); setTab('p3');
+});
+$('#resetBtn').addEventListener('click', () => {
+  const tab = S.tab; S = Object.assign({}, DEF, {tab}); syncInputs(); setMode(S.mode); renderAll();
+});
+
+syncInputs(); setMode(S.mode || 'P'); setTab(S.tab || 'p1'); renderAll();
+})();
+</script>
+</body>
+</html>
