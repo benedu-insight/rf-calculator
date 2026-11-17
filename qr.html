@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RF Calculator QR</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Gowun+Batang:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{--bg:#FAF9F5;--ink:#181715;--muted:#6C6A64;--hair:#E6DFD8;--accent:#7030A0}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Google Sans','Gowun Batang',serif;min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+.sheet{background:#fff;border:1px solid var(--hair);border-radius:20px;padding:32px 28px;max-width:440px;width:100%;text-align:center}
+.k{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+h1{font-size:26px;margin:6px 0 4px;text-wrap:balance}
+p{color:var(--muted);font-size:15px;line-height:1.5}
+#qr{margin:22px auto 16px;width:min(320px,100%)}
+#qr svg{width:100%;height:auto;display:block}
+.url{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);word-break:break-all}
+.menu{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:16px}
+.menu span{font-size:13px;border:1px solid var(--hair);border-radius:999px;padding:4px 10px}
+@media print{body{background:#fff}.sheet{border:0}}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="k">Benedu Insight · RF Calculator</div>
+  <h1>휴대폰으로 스캔하세요</h1>
+  <p>13.56 MHz 강의용 계산기 · 전압·전류는 rms 기준</p>
+  <div id="qr"></div>
+  <div class="url" id="url"></div>
+  <div class="menu"><span>Z 임피던스</span><span>V·I·θ</span><span>Γ 반사계수</span><span>VSWR</span></div>
+</div>
+<script>
+const URL_ = 'https://benedu-insight.github.io/rf-calculator/';
+const qr = qrcode(0, 'M'); qr.addData(URL_); qr.make();
+document.getElementById('qr').innerHTML = qr.createSvgTag({cellSize: 8, margin: 4, scalable: true});
+document.getElementById('url').textContent = URL_;
+</script>
+</body>
+</html>

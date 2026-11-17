@@ -12,3 +12,9 @@
 | VSWR | Z, Z0, f, 케이블 VF | VSWR·ISWR, 정재파 그래프, Vmax·Vmin 위치 |
 
 기본 주파수는 13.56 MHz이며, 전압·전류는 rms 기준입니다.
+
+## 수강생용 QR
+
+![QR](qr.png)
+
+인쇄·화면 표시용 안내 카드: https://benedu-insight.github.io/rf-calculator/qr.html
